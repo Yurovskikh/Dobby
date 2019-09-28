@@ -1,75 +1,22 @@
 package main
 
 import (
-	"fmt"
-
-	"github.com/bwmarrin/discordgo"
-)
-
-const token = "NjI2Mjk4OTg2MjIzMTA4MDk3.XY8CVg.z9oJhxDHBXD5xXbZKy8KG5S7VI0"
-
-var (
-	commandPrefix string
-	botID         string
+	bot "github.com/WikiWikiWasp/Dobby/bot"
+	config "github.com/WikiWikiWasp/Dobby/config"
 )
 
 func main() {
-	/// Create a new discord session
-	discord, err := discordgo.New("Bot " + token)
-	//discord, err := discordgo.New("Bot t6-cdNMAaQnIPY39UrHl1-wUJqIDjMLg")
-	errCheck("error creating discord session", err)
-	/// Get bot account info
-	user, err := discord.User("@me")
-	errCheck("error retrieving account", err)
 
-	botID = user.ID
-	/// Create a Handler for the discord session
-	discord.AddHandler(commandHandler)
-	discord.AddHandler(func(discord *discordgo.Session, ready *discordgo.Ready) {
-		/// Set Bot discord status
-		err = discord.UpdateStatus(0, "Dobby is...free")
-		errCheck("Error attempting to set my status", err)
-		/// Get a list of all servers (guilds) bot is connected to
-		servers := discord.State.Guilds
-		fmt.Printf("Dobby has begun service on %d servers\n", len(servers))
-	})
+	err := config.ReadConfig()
+	if err != nil {
+		panic(err)
+	}
 
-	/// Try to open session
-	err = discord.Open()
-	errCheck("Error opening connection to Discord", err)
-	defer discord.Close()
-
-	/// Set up prefix that goes before bot commands
-	commandPrefix = "!"
+	bot.Start()
 
 	/// Create a channel that takes an empty struct that waits for input.
 	/// Hacky way of making main func sit and wiat forever, not using CPU
 	<-make(chan struct{})
-}
 
-// errCheck
-// Helpher function that allows us to check for errors and log reason
-func errCheck(msg string, err error) {
-	if err != nil {
-		fmt.Printf("%s: %+v", msg, err)
-		panic(err)
-	}
-}
-
-// commandHandler
-// Starting framework of command handler
-func commandHandler(sess *discordgo.Session, msg *discordgo.MessageCreate) {
-	/// Check to make sure the message recieved did not come from another bot
-	/// or from Dobby itself
-	user := msg.Author
-	if user.ID == botID || user.Bot {
-		/// Do nothing because the bot is talking
-		return
-	}
-
-	//fmt.Printf("Message: %+v || From: %s\n", msg.Content, msg.Author)
-	if msg.Content == "ping" {
-		fmt.Printf("Ping received from: %s\n", msg.Author)
-		_, _ = sess.ChannelMessageSend(msg.ChannelID, "pong")
-	}
+	return
 }
