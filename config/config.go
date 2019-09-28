@@ -1,44 +1,27 @@
 package config
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
+	"os"
 )
 
-var (
-	Token     string
+type ConfigStruct struct {
+	BotToken  string
 	BotPrefix string
-	config    *configStruct
-)
-
-type configStruct struct {
-	Token     string `json:"Token"`
-	BotPrefix string `json:"BotPrefix"`
 }
 
-// ReadConfig reads config.json
-func ReadConfig() error {
-	fmt.Println("Reading from config file...")
+// New returns a new Config struct
+func New() *ConfigStruct {
+	return &ConfigStruct{
+		BotToken:  getEnv("DCB_TOKEN", ""),
+		BotPrefix: getEnv("BOT_PREFIX", "!"),
+	}
+}
 
-	file, err := ioutil.ReadFile("./config.json")
-
-	if err != nil {
-		fmt.Println(err.Error())
-		return err
+// Simple helper function to read an environment or return a default value
+func getEnv(key string, defaultVal string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
 	}
 
-	fmt.Println(string(file))
-
-	err = json.Unmarshal(file, &config)
-
-	if err != nil {
-		fmt.Println(err.Error())
-		return err
-	}
-
-	Token = config.Token
-	BotPrefix = config.BotPrefix
-
-	return nil
+	return defaultVal
 }

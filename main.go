@@ -1,16 +1,20 @@
 package main
 
 import (
+	"log"
+
 	bot "github.com/WikiWikiWasp/Dobby/bot"
-	config "github.com/WikiWikiWasp/Dobby/config"
+	"github.com/joho/godotenv"
 )
 
-func main() {
-
-	err := config.ReadConfig()
-	if err != nil {
-		panic(err)
+func init() {
+	// loads values from .env into the system
+	if err := godotenv.Load(); err != nil {
+		log.Print("No .env file found")
 	}
+}
+
+func main() {
 
 	bot.Start()
 
