@@ -6,6 +6,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+const token = "NjI2Mjk4OTg2MjIzMTA4MDk3.XY8CVg.z9oJhxDHBXD5xXbZKy8KG5S7VI0"
+
 var (
 	commandPrefix string
 	botID         string
@@ -13,7 +15,7 @@ var (
 
 func main() {
 	/// Create a new discord session
-	discord, err := discordgo.New("Bot NjI2Mjk4OTg2MjIzMTA4MDk3.XY78RA.T1artprvwqTpWoRUE98TSnBHYkk")
+	discord, err := discordgo.New("Bot " + token)
 	//discord, err := discordgo.New("Bot t6-cdNMAaQnIPY39UrHl1-wUJqIDjMLg")
 	errCheck("error creating discord session", err)
 	/// Get bot account info
@@ -25,7 +27,7 @@ func main() {
 	discord.AddHandler(commandHandler)
 	discord.AddHandler(func(discord *discordgo.Session, ready *discordgo.Ready) {
 		/// Set Bot discord status
-		err = discord.UpdateStatus(0, "Dobby has no master, Dobby is a free bot, and Dobby has come to save Discord.")
+		err = discord.UpdateStatus(0, "Dobby is...free")
 		errCheck("Error attempting to set my status", err)
 		/// Get a list of all servers (guilds) bot is connected to
 		servers := discord.State.Guilds
@@ -64,8 +66,6 @@ func commandHandler(discord *discordgo.Session, msg *discordgo.MessageCreate) {
 		/// Do nothing because the bot is talking
 		return
 	}
-
-	//content := msg.Content
 
 	fmt.Printf("Message: %+v || From: %s\n", msg.Content, msg.Author)
 }
