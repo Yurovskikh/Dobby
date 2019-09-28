@@ -58,7 +58,7 @@ func errCheck(msg string, err error) {
 
 // commandHandler
 // Starting framework of command handler
-func commandHandler(discord *discordgo.Session, msg *discordgo.MessageCreate) {
+func commandHandler(sess *discordgo.Session, msg *discordgo.MessageCreate) {
 	/// Check to make sure the message recieved did not come from another bot
 	/// or from Dobby itself
 	user := msg.Author
@@ -67,5 +67,9 @@ func commandHandler(discord *discordgo.Session, msg *discordgo.MessageCreate) {
 		return
 	}
 
-	fmt.Printf("Message: %+v || From: %s\n", msg.Content, msg.Author)
+	//fmt.Printf("Message: %+v || From: %s\n", msg.Content, msg.Author)
+	if msg.Content == "ping" {
+		fmt.Printf("Ping received from: %s\n", msg.Author)
+		_, _ = sess.ChannelMessageSend(msg.ChannelID, "pong")
+	}
 }
