@@ -18,8 +18,9 @@ func Start() {
 	fmt.Println("Starting up Dobby...")
 	conf := config.New()
 	// BotToken, exists := os.LookupEnv("DCB_TOKEN")
-	if conf.BotToken != "" {
-		fmt.Printf("Dobby Token: %s\n", conf.BotToken)
+	if conf.BotToken == "" {
+		fmt.Printf("Error: Dobby Token not found...\n")
+		return
 	}
 
 	/// Create a new discord session
