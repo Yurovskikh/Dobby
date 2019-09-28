@@ -13,7 +13,8 @@ var (
 
 func main() {
 	/// Create a new discord session
-	discord, err := discordgo.New("Bot NjI2Mjk4OTg2MjIzMTA4MDk3.XYsS3A.Lgx9vaYYGzOck-Nx0b8wwd2YTkk")
+	discord, err := discordgo.New("Bot NjI2Mjk4OTg2MjIzMTA4MDk3.XY78RA.T1artprvwqTpWoRUE98TSnBHYkk")
+	//discord, err := discordgo.New("Bot t6-cdNMAaQnIPY39UrHl1-wUJqIDjMLg")
 	errCheck("error creating discord session", err)
 	/// Get bot account info
 	user, err := discord.User("@me")
@@ -28,7 +29,7 @@ func main() {
 		errCheck("Error attempting to set my status", err)
 		/// Get a list of all servers (guilds) bot is connected to
 		servers := discord.State.Guilds
-		fmt.Printf("Dobby has begun service on %d servers", len(servers))
+		fmt.Printf("Dobby has begun service on %d servers\n", len(servers))
 	})
 
 	/// Try to open session
@@ -66,5 +67,5 @@ func commandHandler(discord *discordgo.Session, msg *discordgo.MessageCreate) {
 
 	//content := msg.Content
 
-	fmt.Printf("Message: %+v || From: %s\n", msg.Message, msg.Author)
+	fmt.Printf("Message: %+v || From: %s\n", msg.Content, msg.Author)
 }
