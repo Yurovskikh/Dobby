@@ -43,7 +43,7 @@ func Start() {
 
 		/// Get a list of all servers (guilds) bot is connected to
 		servers := discord.State.Guilds
-		fmt.Printf("Dobby has begun service on %d servers\n", len(servers))
+		fmt.Printf("\nDobby has begun service on %d servers\n", len(servers))
 	})
 
 	/// Try to open session
