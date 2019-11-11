@@ -28,7 +28,7 @@ func HandleInfoCommand(s *discordgo.Session, m *discordgo.Message, t0 time.Time)
 		"Channel Name",
 		dchanName,
 		"Uptime",
-		(t1.Sub(t0).String())
+		(t1.Sub(t0).String()))
 	s.ChannelMessageSend(m.ChannelID, msg)
 }
 
