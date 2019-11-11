@@ -2,15 +2,18 @@ package bot
 
 import (
 	"fmt"
+	"time"
 
 	"strings"
 
+	"github.com/WikiWikiWasp/Dobby/commands"
 	"github.com/WikiWikiWasp/Dobby/config"
 	"github.com/bwmarrin/discordgo"
 )
 
 var (
 	BotID string
+	t0    time.Time
 )
 
 // Start starts the bot up
@@ -61,22 +64,17 @@ func errCheck(msg string, err error) {
 
 // messageHandler
 // Starting framework of message handler
-func messageHandler(sess *discordgo.Session, msg *discordgo.MessageCreate) {
-	/// need to use conf.BotPrefix instead of hardcodeing "!"
-	if strings.HasPrefix(msg.Content, "!") {
-		/// Check to make sure the message recieved did not come from another bot
-		/// or from Dobby itself
-		user := msg.Author
-		if user.ID == BotID || user.Bot {
-			/// Do nothing because the bot is talking
-			return
-		}
+func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
+	/// Check to make sure the message recieved did not come from another bot
+	/// or from Dobby itself
+	if s == nil || m == nil || m.Author.ID == BotID || m.Author.Bot {
+		return
+	}
 
-		//fmt.Printf("Message: %+v || From: %s\n", msg.Content, msg.Author)
-		if msg.Content == "!ping" {
-			fmt.Printf("Ping received from: %s\n", msg.Author)
-			/// when a user sends "ping" the bot replies with "pong"
-			_, _ = sess.ChannelMessageSend(msg.ChannelID, "pong!")
-		}
+	/// need to use conf.BotPrefix instead of hardcodeing "!"
+	if strings.HasPrefix(m.Content, "!") && strings.Count(m.Content, "!") < 2 {
+
+		commands.ExecuteCommand(s, m.Message, t0)
+		return
 	}
 }
