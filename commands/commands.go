@@ -17,6 +17,8 @@ func ExecuteCommand(s *discordgo.Session, m *discordgo.Message, t0 time.Time) {
 
 	/// handle commands
 	switch msg {
+	case "help":
+		HandleHelpCommand(s, m)
 	case "info":
 		HandleInfoCommand(s, m, t0)
 	case "ping":

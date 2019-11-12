@@ -8,7 +8,30 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// HandleInfoCommand returns a list of available commands and actions
+// HandleHelpCommand returns a list of available commands and actions
+func HandleHelpCommand(s *discordgo.Session, m *discordgo.Message) {
+	commands := map[string]string{
+		"help": "Help Command",
+		"ping": "Ping Command",
+		"info": "Info Command",
+	}
+	fmsg := fmt.Sprintf(
+		"\n%s\n%s\n",
+		"Dobby Commands",
+		strings.Repeat("-", len("Dobby Commands")))
+
+	for com, desc := range commands {
+		fmsg = fmsg + "%-10s%-20s\n"
+		fmsg = fmt.Sprintf(
+			fmsg,
+			com,
+			desc)
+	}
+	fmsg = "```txt" + fmsg + "```"
+	s.ChannelMessageSend(m.ChannelID, fmsg)
+}
+
+// HandleInfoCommand returns the info of the current channel
 func HandleInfoCommand(s *discordgo.Session, m *discordgo.Message, t0 time.Time) {
 	t1 := time.Now()
 	dchan, err := s.Channel(m.ChannelID)
