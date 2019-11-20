@@ -15,20 +15,42 @@ func HandleHelpCommand(s *discordgo.Session, m *discordgo.Message) {
 		"ping": "Ping Command",
 		"info": "Info Command",
 	}
-	fmsg := fmt.Sprintf(
-		"\n%s\n%s\n",
-		"Dobby Commands",
-		strings.Repeat("-", len("Dobby Commands")))
 
-	for com, desc := range commands {
-		fmsg = fmsg + "%-10s%-20s\n"
-		fmsg = fmt.Sprintf(
-			fmsg,
-			com,
-			desc)
+	/// strip '!' from command
+	msg := strings.Split(strings.TrimSpace(m.Content), "!")[1]
+	/// split command
+	helpCommand := strings.Fields(msg)
+
+	/// handle help details
+	if len(helpCommand) > 2 { /// too many arguments
+		HandleUnknownCommand(s, m, m.Content)
+	} else if len(helpCommand) == 2 && helpCommand[0] == "help" { /// help for a specific command
+		/// look for command in available command map above
+		_, found := commands[helpCommand[1]]
+		if found {
+			s.ChannelMessageSend(m.ChannelID, "These are the help details for the `"+helpCommand[1]+"` command.")
+		} else {
+			HandleUnknownCommand(s, m, m.Content)
+		}
+	} else if len(helpCommand) == 1 && helpCommand[0] == "help" { /// general help on commands
+		/// output all the available commands and their descriptions
+		/// formatting of the command list
+		fmsg := fmt.Sprintf(
+			"\n%s\n%s\n",
+			"Dobby Commands",
+			strings.Repeat("-", len("Dobby Commands")))
+
+		/// grab commands and descriptions from map and concatenated
+		for com, desc := range commands {
+			fmsg = fmsg + "%-10s%-20s\n"
+			fmsg = fmt.Sprintf(
+				fmsg,
+				com,
+				desc)
+		}
+		fmsg = "```txt" + fmsg + "```"
+		s.ChannelMessageSend(m.ChannelID, fmsg)
 	}
-	fmsg = "```txt" + fmsg + "```"
-	s.ChannelMessageSend(m.ChannelID, fmsg)
 }
 
 // HandleInfoCommand returns the info of the current channel
