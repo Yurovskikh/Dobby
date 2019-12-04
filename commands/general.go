@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -29,6 +30,7 @@ func HandleHelpCommand(s *discordgo.Session, m *discordgo.Message) {
 		_, found := commands[helpCommand[1]]
 		if found {
 			s.ChannelMessageSend(m.ChannelID, "These are the help details for the `"+helpCommand[1]+"` command.")
+			fmt.Printf("Command Discord Message:\n%s", m.Content)
 		} else {
 			HandleUnknownCommand(s, m, m.Content)
 		}
@@ -50,6 +52,10 @@ func HandleHelpCommand(s *discordgo.Session, m *discordgo.Message) {
 		}
 		fmsg = "```txt" + fmsg + "```"
 		s.ChannelMessageSend(m.ChannelID, fmsg)
+		// output discord message content
+		fmt.Printf("Command Discord Message:\n%+v", *m)
+		jdump, _ := json.MarshalIndent(m, "", "  ")
+		fmt.Printf("Command Discord Message Pretty:\n%+v", string(jdump))
 	}
 }
 
