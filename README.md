@@ -15,7 +15,10 @@ A Discord Bot in Golang
 
 ## Installation
 
-*\<installation>*
+```
+go mod install
+go run main.go
+``` 
 
 ## Notes
 

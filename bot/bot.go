@@ -2,44 +2,61 @@ package bot
 
 import (
 	"fmt"
-
-	"strings"
-
 	"github.com/WikiWikiWasp/Dobby/config"
 	"github.com/bwmarrin/discordgo"
+	"github.com/sirupsen/logrus"
+	"strings"
 )
 
-var (
-	BotID string
-)
+const cmdPrefix = "!"
+
+type Cmd interface {
+	Do(ctx Context, sess *discordgo.Session, msg *discordgo.MessageCreate) error
+	Name() string
+	Help() string
+}
+
+type Bot struct {
+	cfg    *config.ConfigStruct
+	id     string
+	router map[string]Cmd
+	log    *logrus.Logger
+}
+
+func New(cfg *config.ConfigStruct, log *logrus.Logger) *Bot {
+	return &Bot{
+		cfg:    cfg,
+		router: NewRouter(),
+		log:    log,
+	}
+}
 
 // Start starts the bot up
-func Start() {
+func (b Bot) Start() {
 	fmt.Println("Starting up Dobby...")
-	conf := config.New()
-	// BotToken, exists := os.LookupEnv("DCB_TOKEN")
-	if conf.BotToken == "" {
-		fmt.Printf("Error: Dobby Token not found...\n")
-		return
+	/// Create a new discord session
+	session, err := discordgo.New(fmt.Sprintf("Bot %s", b.cfg.BotToken))
+	if err != nil {
+		b.log.WithError(err).Fatal("unable to creating discord session")
 	}
 
-	/// Create a new discord session
-	goBot, err := discordgo.New("Bot " + conf.BotToken)
-	errCheck("error creating discord session", err)
-
 	/// Get bot account info
-	fmt.Printf("Getting Dobby account info using token...\n")
-	user, err := goBot.User("@me")
-	errCheck("error retrieving account", err)
+	b.log.Info("Getting Dobby account info using token...")
+	user, err := session.User("@me")
+	if err != nil {
+		b.log.WithError(err).Fatal("unable to retrieving account")
+	}
 
-	BotID = user.ID
+	b.id = user.ID
 
 	/// Create a Handler for the discord session
-	goBot.AddHandler(messageHandler)
-	goBot.AddHandler(func(discord *discordgo.Session, ready *discordgo.Ready) {
+	session.AddHandler(b.messageHandler)
+	session.AddHandler(func(discord *discordgo.Session, ready *discordgo.Ready) {
 		/// Set Bot discord status
-		err = discord.UpdateStatus(0, "Dobby is...free")
-		errCheck("Error attempting to set my status", err)
+		if err = discord.UpdateStatus(0, "Dobby is...free"); err != nil {
+			b.log.WithError(err).Error("unable to attempting to set my status")
+			return
+		}
 
 		/// Get a list of all servers (guilds) bot is connected to
 		servers := discord.State.Guilds
@@ -47,36 +64,42 @@ func Start() {
 	})
 
 	/// Try to open session
-	err = goBot.Open()
-	errCheck("Error opening connection to Discord", err)
-}
-
-// errCheck
-// Helpher function that allows us to check for errors and log reason
-func errCheck(msg string, err error) {
-	if err != nil {
-		fmt.Printf("%s: %+v\n", msg, err)
+	if err = session.Open(); err != nil {
+		b.log.WithError(err).Fatal("unable to opening connection to Discord")
 	}
 }
 
 // messageHandler
 // Starting framework of message handler
-func messageHandler(sess *discordgo.Session, msg *discordgo.MessageCreate) {
+func (b Bot) messageHandler(sess *discordgo.Session, msg *discordgo.MessageCreate) {
 	/// need to use conf.BotPrefix instead of hardcodeing "!"
-	if strings.HasPrefix(msg.Content, "!") {
-		/// Check to make sure the message recieved did not come from another bot
-		/// or from Dobby itself
-		user := msg.Author
-		if user.ID == BotID || user.Bot {
-			/// Do nothing because the bot is talking
-			return
-		}
+	if !strings.HasPrefix(msg.Content, cmdPrefix) {
+		return
+	}
 
-		//fmt.Printf("Message: %+v || From: %s\n", msg.Content, msg.Author)
-		if msg.Content == "!ping" {
-			fmt.Printf("Ping received from: %s\n", msg.Author)
-			/// when a user sends "ping" the bot replies with "pong"
-			_, _ = sess.ChannelMessageSend(msg.ChannelID, "pong!")
+	/// Check to make sure the message recieved did not come from another bot
+	/// or from Dobby itself
+	user := msg.Author
+	if user.ID == b.id || user.Bot {
+		/// Do nothing because the bot is talking
+		return
+	}
+
+	ctx := NewFromContent(msg.Content)
+	cmd, ok := b.router[ctx.Cmd]
+	if !ok {
+		// todo cmd = b.Router["!help"]
+		return
+	}
+
+	if err := cmd.Do(ctx, sess, msg); err != nil {
+		if err == ErrEmptyArgs {
+			_, err := sess.ChannelMessageSend(msg.ChannelID, cmd.Help())
+			if err != nil {
+				b.log.WithField("cmd", cmd.Name()).WithError(err).Error("unable to send message")
+			}
+		} else {
+			b.log.WithField("cmd", cmd.Name()).WithError(err).Error("unable to do cmd")
 		}
 	}
 }
